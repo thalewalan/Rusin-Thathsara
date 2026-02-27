@@ -22,7 +22,8 @@ import {
   FileText,
   Calendar,
   ChevronRight,
-  School
+  School,
+  Telescope
 } from 'lucide-react';
 
 const translations = {
@@ -34,7 +35,7 @@ const translations = {
       subtitle: "Pushing the boundaries of human potential. Explorer, Creator, and Record Breaker.",
       cta1: "Verify Record",
       cta2: "Watch TV Features",
-      roles: ["Guinness World Record Holder", "Facility Management Professional", "Mental Athlete", "Content Creator"]
+      roles: ["Guinness World Record Holder", "Facility Management Professional", "Mental Athlete", "Astronomer"]
     },
     about: {
       title: "Academic Excellence",
@@ -118,7 +119,21 @@ const translations = {
     viewAll: "View All",
     privacyPolicy: "Privacy Policy",
     termsOfUse: "Terms of Use",
-    recordHolderDesc: "Guinness World Record Holder and Facilities Management enthusiast dedicated to mental excellence and technical precision."
+    recordHolderDesc: "Guinness World Record Holder and Facilities Management enthusiast dedicated to mental excellence and technical precision.",
+    astronomy: {
+      label: "Stargazer",
+      title: "Under the",
+      titleAccent: "Infinite Sky",
+      quote: "\"The cosmos is within us. We are made of star-stuff.\" — Carl Sagan",
+      intro: "Beyond records and equations, Rusin finds his deepest inspiration in the night sky. A dedicated amateur astronomer, he believes that gazing at the cosmos fuels the same drive that breaks world records — the relentless pursuit of the unknown.",
+      objects: [
+        { emoji: "🌌", name: "Andromeda Galaxy", type: "Galaxy", dist: "2.537M ly", factEn: "Our nearest galactic neighbour — a trillion stars visible to the naked eye on a clear night." },
+        { emoji: "🪐", name: "Saturn", type: "Planet", dist: "~1.2B km", factEn: "Its rings span 282,000 km yet are only ~10 m thick — the most elegant structure in the solar system." },
+        { emoji: "✨", name: "Orion Nebula", type: "Nebula", dist: "1,344 ly", factEn: "A stellar nursery where new stars are born — a reminder that creation is a cosmic constant." },
+        { emoji: "⭐", name: "Pleiades", type: "Star Cluster", dist: "444 ly", factEn: "Seven sisters visible with the naked eye — revered by cultures across every continent for millennia." }
+      ],
+      viewSky: "Explore the Sky"
+    }
   },
   ru: {
     nav: { home: "Главная", articles: "Статьи", tv: "ТВ Программы", about: "О рекорде" },
@@ -128,7 +143,7 @@ const translations = {
       subtitle: "Расширяя границы человеческого потенциала. Исследователь, Творец и Рекордсмен.",
       cta1: "Проверить рекорд",
       cta2: "Смотреть ТВ",
-      roles: ["Рекордсмен Гиннесса", "Специалист по управлению объектами", "Ментальный атлет", "Создатель контента"]
+      roles: ["Рекордсмен Гиннесса", "Специалист по управлению объектами", "Ментальный атлет", "Астроном"]
     },
     about: {
       title: "Академические достижения",
@@ -212,7 +227,21 @@ const translations = {
     viewAll: "Посмотреть все",
     privacyPolicy: "Политика конфиденциальности",
     termsOfUse: "Условия использования",
-    recordHolderDesc: "Рекордсмен Книги Гиннесса и энтузиаст управления объектами, посвященный умственному совершенству и технической точности."
+    recordHolderDesc: "Рекордсмен Книги Гиннесса и энтузиаст управления объектами, посвященный умственному совершенству и технической точности.",
+    astronomy: {
+      label: "Звездочёт",
+      title: "Под",
+      titleAccent: "Бесконечным небом",
+      quote: "\"Космос внутри нас. Мы сделаны из звёздной пыли.\" — Карл Саган",
+      intro: "За пределами рекордов и уравнений Русин черпает своё глубочайшее вдохновение в ночном небе. Как преданный астроном-любитель, он убеждён: созерцание космоса питает ту же страсть, что и мировые рекорды — неустанное стремление к неизвестному.",
+      objects: [
+        { emoji: "🌌", name: "Галактика Андромеды", type: "Галактика", dist: "2,537 млн св. лет", factEn: "Наш ближайший галактический сосед — триллион звёзд, видимых невооружённым глазом в ясную ночь." },
+        { emoji: "🪐", name: "Сатурн", type: "Планета", dist: "~1.2 млрд км", factEn: "Его кольца диаметром 282 000 км и толщиной всего ~10 м — самая изящная структура Солнечной системы." },
+        { emoji: "✨", name: "Туманность Ориона", type: "Туманность", dist: "1 344 св. года", factEn: "Звёздная колыбель, где рождаются новые звёзды — напоминание о том, что творение — космическая константа." },
+        { emoji: "⭐", name: "Плеяды", type: "Звёздное скопление", dist: "444 св. года", factEn: "Семь сестёр, видимых невооружённым глазом — их почитали культуры всех континентов тысячелетиями." }
+      ],
+      viewSky: "Исследовать небо"
+    }
   }
 };
 
@@ -241,10 +270,11 @@ const RevealSection = ({ children, className = "" }) => {
       }
     });
 
-    if (domRef.current) observer.observe(domRef.current);
+    const currentRef = domRef.current;
+    if (currentRef) observer.observe(currentRef);
 
     return () => {
-      if (domRef.current) observer.disconnect();
+      if (currentRef) observer.disconnect();
     };
   }, []);
 
@@ -298,13 +328,15 @@ const TypewriterEffect = ({ phrases }) => {
 
   useEffect(() => {
     if (subIndex === phrases[index].length + 1 && !reverse) {
-      setTimeout(() => setReverse(true), 2000);
-      return;
+      const timeout = setTimeout(() => setReverse(true), 2000);
+      return () => clearTimeout(timeout);
     }
     if (subIndex === 0 && reverse) {
-      setReverse(false);
-      setIndex((prev) => (prev + 1) % phrases.length);
-      return;
+      const timeout = setTimeout(() => {
+        setReverse(false);
+        setIndex((prev) => (prev + 1) % phrases.length);
+      }, 0);
+      return () => clearTimeout(timeout);
     }
     const timeout = setTimeout(() => {
       setSubIndex((prev) => prev + (reverse ? -1 : 1));
@@ -333,24 +365,112 @@ const GlassCard = ({ children, className = "", delay = "0s" }) => (
   </div>
 );
 
-const FloatingOrb = ({ className, style }) => (
-  <div
-    className={`absolute rounded-full mix-blend-screen filter blur-[100px] animate-float opacity-30 pointer-events-none ${className}`}
-    style={style}
-  ></div>
-);
-
-const ImageHolder = ({ label, icon: Icon, aspect = "aspect-square" }) => (
-  <div className={`w-full ${aspect} rounded-2xl bg-slate-900 border border-white/10 flex flex-col items-center justify-center relative group overflow-hidden transition-transform duration-500 hover:-rotate-[2deg] shadow-2xl`}>
-    <div className="absolute inset-0 bg-gradient-to-tr from-amber-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-    <Icon className="w-12 h-12 text-white/20 group-hover:text-amber-400/50 transition-all duration-500 group-hover:scale-110" />
-    <span className="mt-4 text-xs font-bold text-white/40 uppercase tracking-[0.2em]">{label}</span>
-    <div className="absolute top-4 left-4 flex gap-2">
-      <div className="w-2 h-2 rounded-full bg-white/20" />
-      <div className="w-2 h-2 rounded-full bg-white/20" />
+const ImageHolder = ({ label, icon: Icon, aspect = "aspect-square" }) => {
+  return (
+    <div className={`w-full ${aspect} rounded-2xl bg-slate-900 border border-white/10 flex flex-col items-center justify-center relative group overflow-hidden transition-transform duration-500 hover:-rotate-[2deg] shadow-2xl`}>
+      <div className="absolute inset-0 bg-gradient-to-tr from-amber-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+      {Icon && <Icon className="w-12 h-12 text-white/20 group-hover:text-amber-400/50 transition-all duration-500 group-hover:scale-110" />}
+      <span className="mt-4 text-xs font-bold text-white/40 uppercase tracking-[0.2em]">{label}</span>
+      <div className="absolute top-4 left-4 flex gap-2">
+        <div className="w-2 h-2 rounded-full bg-white/20" />
+        <div className="w-2 h-2 rounded-full bg-white/20" />
+      </div>
     </div>
-  </div>
-);
+  );
+};
+
+const SHOOTING_STARS = [...Array(2)].map((_, i) => ({
+  top: `${10 + Math.random() * 30}%`,
+  duration: 22 + Math.random() * 12,
+  delay: i * 12,
+}));
+
+const Background = () => {
+  const [stars, setStars] = useState([]);
+
+  useEffect(() => {
+    const starCount = 80;
+    const newStars = [...Array(starCount)].map((_, i) => {
+      const type = Math.random() > 0.5 ? 'blink' : 'sparkle';
+      return {
+        id: i,
+        top: `${Math.random() * 100}%`,
+        left: `${Math.random() * 100}%`,
+        size: Math.random() < 0.6 ? 4 : Math.random() < 0.9 ? 6 : 8,
+        type,
+        duration: type === 'blink' ? 0.5 + Math.random() * 1 : 1.5 + Math.random() * 2,
+        delay: Math.random() * 5,
+        rotate: Math.random() * 90,
+      };
+    });
+    setStars(newStars);
+
+    const style = document.createElement('style');
+    style.innerHTML = `
+      @keyframes star-blink {
+        0%, 100% { opacity: 0.2; }
+        50% { opacity: 1; }
+      }
+      @keyframes star-sparkle {
+        0%, 100% { transform: scale(0.6) rotate(var(--rotation)); opacity: 0.4; }
+        50% { transform: scale(1.1) rotate(var(--rotation)); opacity: 1; }
+      }
+      @keyframes shooting-star {
+        0% { transform: translateX(0) translateY(0) rotate(-45deg) scale(0); opacity: 0; }
+        1% { transform: translateX(0) translateY(0) rotate(-45deg) scale(1); opacity: 1; }
+        15% { transform: translateX(-600px) translateY(600px) rotate(-45deg) scale(1); opacity: 0; }
+        100% { transform: translateX(-600px) translateY(600px) rotate(-45deg) scale(0); opacity: 0; }
+      }
+    `;
+    document.head.appendChild(style);
+    return () => {
+      if (document.head.contains(style)) document.head.removeChild(style);
+    };
+  }, []);
+
+  return (
+    <div className="fixed inset-0 -z-50 bg-[#02040a] overflow-hidden pointer-events-none">
+      <div className="absolute inset-0 bg-gradient-to-b from-[#0a1530] via-[#02040a] to-black" />
+      <div className="absolute top-[-5%] left-[-5%] w-[60%] h-[60%] rounded-full blur-[80px] bg-blue-500/10 opacity-30" />
+      <div className="absolute bottom-[-5%] right-[-5%] w-[50%] h-[50%] rounded-full blur-[70px] bg-indigo-500/10 opacity-20" />
+
+      {stars.map((star) => (
+        <div
+          key={star.id}
+          className="absolute"
+          style={{
+            top: star.top,
+            left: star.left,
+            width: `${star.size}px`,
+            height: `${star.size}px`,
+            animation: `${star.type === 'blink' ? 'star-blink' : 'star-sparkle'} ${star.duration}s ease-in-out infinite`,
+            animationDelay: `${star.delay}s`,
+            '--rotation': `${star.rotate}deg`,
+          }}
+        >
+          <svg viewBox="0 0 24 24" fill="white" className="w-full h-full drop-shadow-[0_0_1.5px_rgba(255,255,255,0.9)]">
+            <path d="M12 0L14.5 9.5H24L16.5 14.5L19 24L12 19L5 24L7.5 14.5L0 9.5H9.5L12 0Z" />
+          </svg>
+        </div>
+      ))}
+
+      {SHOOTING_STARS.map((s, i) => (
+        <div
+          key={`shooting-${i}`}
+          className="absolute w-[200px] h-[1px] bg-gradient-to-r from-blue-200 to-transparent"
+          style={{
+            top: s.top,
+            right: '-20%',
+            boxShadow: '0 0 8px rgba(147, 197, 253, 0.8)',
+            animation: `shooting-star ${s.duration}s linear infinite`,
+            animationDelay: `${s.delay}s`,
+            opacity: 0,
+          }}
+        />
+      ))}
+    </div>
+  );
+};
 
 export default function App() {
   const [lang, setLang] = useState('en');
@@ -414,44 +534,11 @@ export default function App() {
   ];
 
   return (
-    <div className="bg-slate-950 text-slate-200 font-sans overflow-x-hidden selection:bg-amber-500/30 selection:text-amber-200 relative">
+    <div className="text-slate-200 font-sans overflow-x-hidden selection:bg-amber-500/30 selection:text-amber-200 relative">
+      <Background />
 
-      {/* Background - Mesh Gradient Header with Blobs */}
-      <div className="fixed inset-0 bg-gradient-to-br from-slate-900 via-[#1a1510] to-black -z-20 pointer-events-none">
-        {/* Blob 1 - Gold/Amber */}
-        <div
-          className="absolute top-[-10%] left-[15%] w-[50vw] h-[50vw] rounded-full opacity-50 -z-10"
-          style={{
-            background: 'radial-gradient(circle, rgba(251,191,36,0.5) 0%, rgba(251,191,36,0.2) 40%, transparent 70%)',
-            filter: 'blur(80px)',
-            animation: 'float 8s ease-in-out infinite'
-          }}
-        />
-        {/* Blob 2 - Purple */}
-        <div
-          className="absolute top-[10%] right-[10%] w-[45vw] h-[45vw] rounded-full opacity-40 -z-10"
-          style={{
-            background: 'radial-gradient(circle, rgba(168,85,247,0.5) 0%, rgba(168,85,247,0.15) 40%, transparent 70%)',
-            filter: 'blur(80px)',
-            animation: 'float 10s ease-in-out infinite',
-            animationDelay: '-2s'
-          }}
-        />
-        {/* Blob 3 - Amber/Pink blend */}
-        <div
-          className="absolute bottom-[20%] left-[30%] w-[40vw] h-[40vw] rounded-full opacity-35 -z-10"
-          style={{
-            background: 'radial-gradient(circle, rgba(251,146,60,0.4) 0%, rgba(236,72,153,0.2) 50%, transparent 70%)',
-            filter: 'blur(80px)',
-            animation: 'float 12s ease-in-out infinite',
-            animationDelay: '-4s'
-          }}
-        />
-      </div>
-
-      {/* Navbar */}
-      <nav className="fixed top-0 w-full z-50 bg-slate-950/80 backdrop-blur-xl border-b border-white/10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+      <nav className="fixed top-0 w-full z-50 bg-gradient-to-b from-[#0a1530]/70 to-transparent backdrop-blur-sm">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           <div className="flex items-center gap-3 cursor-pointer group" onClick={() => handleNavClick('home')}>
             <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-amber-400 to-amber-600 flex items-center justify-center shadow-[0_0_15px_rgba(251,191,36,0.5)] group-hover:scale-110 transition-transform">
               <Award className="text-slate-950 w-6 h-6" />
@@ -461,7 +548,6 @@ export default function App() {
             </span>
           </div>
 
-          {/* Desktop Nav */}
           <div className="hidden md:flex items-center gap-8">
             <div className="flex gap-6 bg-white/5 px-6 py-2 rounded-full border border-white/10">
               {navItems.map((item) => (
@@ -484,15 +570,13 @@ export default function App() {
             </button>
           </div>
 
-          {/* Mobile Menu Trigger */}
           <button className="md:hidden p-2 text-slate-300 hover:text-white" onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}>
             {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
           </button>
         </div>
 
-        {/* Mobile Sidebar */}
         {isMobileMenuOpen && (
-          <div className="md:hidden absolute top-20 left-0 w-full bg-slate-900 border-b border-white/10 animate-in slide-in-from-top duration-300 shadow-2xl z-40">
+          <div className="md:hidden absolute top-14 left-0 w-full bg-slate-900 border-b border-white/10 animate-in slide-in-from-top duration-300 shadow-2xl z-40">
             <div className="flex flex-col p-6 gap-4">
               {navItems.map((item) => (
                 <button
@@ -518,14 +602,13 @@ export default function App() {
             </div>
           </div>
         )}
+        {/* Glowing star-themed separator */}
+        <div className="absolute bottom-0 left-0 w-full h-px" style={{ background: 'linear-gradient(to right, transparent 0%, rgba(96,165,250,0.15) 20%, rgba(99,102,241,0.5) 50%, rgba(96,165,250,0.15) 80%, transparent 100%)', boxShadow: '0 0 8px 1px rgba(99,102,241,0.3)' }} />
       </nav>
 
-      <main className="pt-28 pb-8 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
-
+      <main className="pt-20 pb-8 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
         {page === 'home' && (
           <div className="space-y-32 animate-in fade-in zoom-in-95 duration-700">
-
-            {/* Hero Section */}
             <div className="flex flex-col items-center gap-8 pt-10 text-center max-w-4xl mx-auto">
               <RevealSection>
                 <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400 text-sm font-semibold tracking-wide backdrop-blur-md mb-6">
@@ -565,7 +648,6 @@ export default function App() {
               </RevealSection>
             </div>
 
-            {/* Guinness Verification Feature (Dynamic) */}
             {(recordLoadingState === 'loading' || recordLoadingState === 'success') && (
               <div className="py-10 animate-slide-up">
                 <GlassCard className="max-w-4xl mx-auto border-amber-500/20 relative overflow-hidden">
@@ -581,7 +663,6 @@ export default function App() {
                     <div className="flex flex-col md:flex-row gap-12 items-center md:items-center p-4">
                       <div className="w-64 md:w-80 h-80 md:h-[400px] bg-[#fdfaf5] border-4 border-amber-600/40 rounded-sm shadow-2xl flex flex-col items-center justify-between p-6 text-center group relative ring-8 ring-amber-900/10">
                         <div className="absolute inset-0 border-[16px] border-double border-amber-900/5 pointer-events-none" />
-
                         <div className="z-10 flex flex-col items-center mt-2">
                           <Award className="w-20 h-20 text-amber-600 mb-6 group-hover:rotate-12 transition-transform duration-500" />
                           <div className="bg-amber-600 text-white font-black text-xs px-3 py-1 rounded tracking-[0.2em] mb-4 uppercase">Official</div>
@@ -589,7 +670,6 @@ export default function App() {
                           <div className="w-24 h-px bg-amber-900/20 my-4" />
                           <p className="text-slate-800/60 text-[10px] font-medium leading-relaxed uppercase tracking-wider italic">CERTIFICATE OF AUTHENTICITY</p>
                         </div>
-
                         <div className="z-10 pb-4">
                           <div className="text-amber-600 text-xs font-black tracking-widest uppercase mb-1">Certified Holder</div>
                           <div className="text-slate-900 font-serif text-lg font-bold">{t.hero.name}</div>
@@ -625,7 +705,6 @@ export default function App() {
               </div>
             )}
 
-            {/* Stats Overview */}
             <RevealSection>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 pt-10">
                 {[
@@ -647,7 +726,6 @@ export default function App() {
               </div>
             </RevealSection>
 
-            {/* STORY & BIOGRAPHY */}
             <RevealSection>
               <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
                 <div className="lg:col-span-6 space-y-8 order-2 lg:order-1 text-center lg:text-left">
@@ -658,9 +736,14 @@ export default function App() {
                   <p className="text-base sm:text-lg text-slate-400 leading-relaxed">
                     {t.story.text}
                   </p>
-                  <button className="px-6 py-3 mx-auto lg:mx-0 rounded-full bg-white/5 border border-white/10 text-white font-medium hover:bg-white/10 transition-colors flex items-center gap-2 w-fit">
+                  <a
+                    href="https://si.wikipedia.org/wiki/රුසින්_තත්සර"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="px-6 py-3 mx-auto lg:mx-0 rounded-full bg-white/5 border border-white/10 text-white font-medium hover:bg-white/10 transition-colors flex items-center gap-2 w-fit"
+                  >
                     {lang === 'en' ? "Learn more about my journey" : "Узнать больше о моём пути"} <ArrowRight className="w-4 h-4" />
-                  </button>
+                  </a>
                 </div>
                 <div className="lg:col-span-6 order-1 lg:order-2 px-8 sm:px-16 lg:px-0">
                   <ImageHolder label={lang === 'en' ? "Rusin Thathsara Profile" : "Профиль Русина Татсара"} icon={Star} aspect="aspect-[4/5]" />
@@ -668,7 +751,6 @@ export default function App() {
               </div>
             </RevealSection>
 
-            {/* ACADEMIC EXCELLENCE SECTION */}
             <section id="about" className="py-24 bg-slate-900/20 rounded-[3rem] -mx-4 sm:mx-0 px-4 sm:px-8">
               <RevealSection>
                 <div className="grid lg:grid-cols-2 gap-16 items-center">
@@ -720,7 +802,7 @@ export default function App() {
                     <div className="space-y-4 sm:pt-12">
                       <div className="p-6 rounded-3xl bg-amber-500 text-black flex flex-col justify-center h-full sm:h-auto sm:aspect-square">
                         <Star className="w-8 h-8 mb-4 fill-black" />
-                        <p className="text-3xl font-black leading-tight">2-5%</p>
+                        <p className="text-3xl font-black leading-tight">1-5%</p>
                         <p className="text-xs font-bold uppercase tracking-widest opacity-80 mt-2">{t.systemPrecision}</p>
                       </div>
                     </div>
@@ -732,7 +814,6 @@ export default function App() {
               </RevealSection>
             </section>
 
-            {/* Timeline Section */}
             <div className="relative py-10">
               <RevealSection>
                 <div className="text-center mb-16 space-y-4">
@@ -744,16 +825,16 @@ export default function App() {
                 </div>
 
                 <div className="relative max-w-4xl mx-auto px-4 sm:px-0">
-                  <div className="absolute left-6 sm:left-1/2 transform -translate-x-1/2 h-full w-px bg-gradient-to-b from-amber-500/50 via-purple-500/50 to-emerald-500/20" />
+                  <div className="absolute left-8 sm:left-1/2 transform sm:-translate-x-1/2 h-full w-px bg-gradient-to-b from-amber-500/50 via-purple-500/50 to-emerald-500/20" />
                   <div className="space-y-12 sm:space-y-16">
                     {t.timeline.events.map((event, index) => (
                       <RevealSection key={index}>
                         <div className={`relative flex flex-col sm:flex-row items-center gap-6 sm:gap-8 ${index % 2 === 0 ? 'sm:flex-row-reverse' : ''}`} style={{ transitionDelay: `${index * 200}ms` }}>
-                          <div className="absolute left-6 sm:left-1/2 transform -translate-x-1/2 w-8 h-8 rounded-full bg-slate-900 border-2 border-white/20 flex items-center justify-center z-10">
+                          <div className="absolute left-0 sm:left-1/2 transform sm:-translate-x-1/2 w-8 h-8 rounded-full bg-slate-900 border-2 border-white/20 flex items-center justify-center z-10">
                             <div className={`w-3 h-3 rounded-full ${event.color} bg-current animate-pulse`} />
                           </div>
                           <div className="w-full sm:w-[45%] pl-14 sm:pl-0">
-                            <GlassCard className={`p-6 sm:p-8 hover:scale-[1.02] transition-transform ${index % 2 === 0 ? 'sm:text-right' : 'sm:text-left'}`}>
+                            <GlassCard className={`p-6 sm:p-8 hover:scale-[1] transition-transform ${index % 2 === 0 ? 'sm:text-right' : 'sm:text-left'}`}>
                               <div className={`flex items-center gap-3 mb-4 ${index % 2 === 0 ? 'sm:justify-end' : 'justify-start'}`}>
                                 <div className={`p-2 sm:p-3 rounded-xl bg-white/5 ${event.color}`}>
                                   <event.icon className="w-5 h-5 sm:w-6 sm:h-6" />
@@ -773,7 +854,98 @@ export default function App() {
               </RevealSection>
             </div>
 
-            {/* Articles Section */}
+            {/* ── ASTRONOMY SECTION ── */}
+            <section id="astronomy" className="relative py-24 rounded-[3rem] -mx-4 sm:mx-0 px-4 sm:px-8 overflow-hidden">
+              {/* cosmic ambient glow */}
+              <div className="absolute inset-0 rounded-[3rem] bg-gradient-to-br from-indigo-950/40 via-[#02040a]/60 to-blue-950/30 pointer-events-none" />
+              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full bg-indigo-600/5 blur-[100px] pointer-events-none" />
+
+              <RevealSection>
+                {/* header */}
+                <div className="text-center mb-16 space-y-5 relative z-10">
+                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-lg bg-indigo-500/10 border border-indigo-400/20 text-indigo-300 text-xs font-bold uppercase tracking-widest">
+                    <Telescope className="w-4 h-4" />
+                    {t.astronomy.label}
+                  </div>
+                  <h2 className="text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight leading-tight">
+                    {t.astronomy.title}{' '}
+                    <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-300 via-indigo-300 to-purple-400">
+                      {t.astronomy.titleAccent}
+                    </span>
+                  </h2>
+                  {/* quote */}
+                  <p className="text-slate-400 italic text-base sm:text-lg max-w-xl mx-auto font-light leading-relaxed">
+                    {t.astronomy.quote}
+                  </p>
+                </div>
+
+                <div className="relative z-10 grid lg:grid-cols-2 gap-12 items-start">
+                  {/* left — intro + CTA */}
+                  <div className="space-y-8">
+                    <p className="text-slate-300 text-base sm:text-lg leading-relaxed">
+                      {t.astronomy.intro}
+                    </p>
+
+                    {/* Astronomy image */}
+                    <div className="relative w-full aspect-[4/3] rounded-3xl overflow-hidden border border-indigo-400/10 shadow-2xl group">
+                      <img
+                        src="https://images.unsplash.com/photo-1506703719100-a0f3a48c0f86?auto=format&fit=crop&q=80&w=900"
+                        alt="Milky Way night sky"
+                        className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                      />
+                      {/* dark gradient overlay */}
+                      <div className="absolute inset-0 bg-gradient-to-t from-[#020610]/80 via-transparent to-transparent" />
+                      {/* caption */}
+                      <div className="absolute bottom-4 left-4 flex items-center gap-2">
+                        <Telescope className="w-4 h-4 text-indigo-300" />
+                        <span className="text-xs font-bold text-white/70 uppercase tracking-[0.2em]">
+                          {lang === 'en' ? "Rusin's Observatory" : 'Обсерватория Русина'}
+                        </span>
+                      </div>
+                    </div>
+
+                    <a
+                      href="https://www.nasa.gov"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-3 px-6 py-3 rounded-full bg-indigo-500/10 border border-indigo-400/20 text-indigo-300 font-semibold hover:bg-indigo-500/20 transition-all text-sm group w-fit"
+                    >
+                      <Star className="w-4 h-4 fill-indigo-300" />
+                      {t.astronomy.viewSky}
+                      <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                    </a>
+                  </div>
+
+                  {/* right — celestial object cards grid */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                    {t.astronomy.objects.map((obj, i) => (
+                      <GlassCard
+                        key={i}
+                        className="group border-indigo-500/10 hover:border-indigo-400/30 flex flex-col gap-3 p-5 relative overflow-hidden"
+                      >
+                        {/* subtle glow on hover */}
+                        <div className="absolute inset-0 rounded-3xl bg-gradient-to-br from-indigo-600/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+                        <div className="text-3xl">{obj.emoji}</div>
+                        <div>
+                          <div className="flex items-center gap-2 mb-1 flex-wrap">
+                            <span className="text-base font-bold text-white">{obj.name}</span>
+                            <span className="text-[10px] px-2 py-0.5 rounded-full bg-indigo-500/15 border border-indigo-400/20 text-indigo-300 font-bold uppercase tracking-wider">
+                              {obj.type}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-1 text-xs text-slate-500 mb-3">
+                            <MapPin className="w-3 h-3" />
+                            {obj.dist}
+                          </div>
+                          <p className="text-sm text-slate-400 leading-relaxed">{obj.factEn}</p>
+                        </div>
+                      </GlassCard>
+                    ))}
+                  </div>
+                </div>
+              </RevealSection>
+            </section>
+
             <section id="articles" className="py-24 bg-white/[0.02] rounded-[3rem] -mx-4 sm:mx-0 px-4 sm:px-8">
               <RevealSection>
                 <div className="flex flex-col md:flex-row items-center justify-between mb-12 sm:mb-16 gap-6 text-center md:text-left">
@@ -820,7 +992,6 @@ export default function App() {
           </div>
         )}
 
-        {/* Articles View */}
         {page === 'articles' && (
           <div className="space-y-8 animate-in slide-in-from-bottom-8 fade-in duration-500 pt-10">
             <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 mb-10 text-center sm:text-left">
@@ -850,7 +1021,6 @@ export default function App() {
           </div>
         )}
 
-        {/* TV View */}
         {page === 'tv' && (
           <div className="space-y-8 animate-in slide-in-from-right-8 fade-in duration-500 pt-10">
             <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 mb-10 text-center sm:text-left">
@@ -876,7 +1046,6 @@ export default function App() {
             </div>
           </div>
         )}
-
       </main>
 
       <footer className="py-8 sm:py-12 bg-black/50 backdrop-blur-md border-t border-white/5">
@@ -910,8 +1079,6 @@ export default function App() {
             <div className="pt-8 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-4 text-center">
               <p className="text-slate-600 text-xs sm:text-sm">{t.footer}</p>
               <div className="flex flex-wrap justify-center gap-4 sm:gap-8 text-[10px] sm:text-xs font-bold text-slate-500 uppercase tracking-widest">
-                <a href="#" className="hover:text-white transition-colors">{t.privacyPolicy}</a>
-                <a href="#" className="hover:text-white transition-colors">{t.termsOfUse}</a>
               </div>
             </div>
           </RevealSection>
